@@ -1,14 +1,5 @@
 
 
-my_kernel_initializer <- 
-  function(shape, stddev = NULL, dtype = NULL) {
-    tf$keras$backend$random_normal(shape = shape, 
-                                   stddev = stddev, 
-                                   dtype = dtype)
-  }
-
-
-
 GatedLinearUnit <-
   R6::R6Class(
     "GatedLinearUnit",
@@ -43,6 +34,8 @@ GatedLinearUnit <-
       },
       
       build = function(input_shape) {
+        
+        browser()
         
         if (length(input_shape) == 1L)
           input_shape <- tf$TensorShape(input_shape[[1]])
@@ -86,6 +79,8 @@ GatedLinearUnit <-
       },
       
       call = function(x, mask = NULL) {
+        
+        browser()
         
         linear_out <-
           tf$keras$backend$conv1d(x, self$linear_kernel, padding = 'same') %>%
@@ -176,7 +171,7 @@ GLUBlock <-
       build = function(input_shape) {
 
         self$glu_layers <-
-          map(1L:self$num_layers, function(name) {
+          purrr::map(1L:self$num_layers, function(name) {
             layer_glu(
               filters = self$filters,
               kernel_size = self$kernel_size,
@@ -219,7 +214,6 @@ GLUBlock <-
   )
 
 
-
 layer_glu_block <- 
   function(object,
            num_layers = 3,
@@ -248,41 +242,4 @@ layer_glu_block <-
       )
     )
   }
-
-
-
-make_glu_model <- 
-  function(winlen = 32768L, output_classes = vector(length = 5)) {
-    
-    input <- layer_input(shape = list(8192L, 6L))
-    
-    glu <- input %>% 
-      layer_glu(32, 3) %>% 
-      layer_glu(64, 5) %>% 
-      layer_glu(128, 8) %>% 
-      layer_glu(192, 12) %>% 
-      layer_glu(256, 16)
-    
-    output <- layer_global_max_pooling_1d(glu) %>% 
-      layer_dense(length(output_classes))
-    
-    build_and_compile(input, output)
-  }
-
-
-
-make_glu_block <- 
-  function(winlen = 32768L, output_classes = vector(length = 5)) {
-    input <- layer_input(shape = list(8192L, 6L))
-    
-    base <- input %>% 
-      layer_glu_block()
-    
-    output <- base %>% 
-      layer_global_max_pooling_1d() %>% 
-      layer_dense(length(output_classes), activation = 'softmax')
-    
-    build_and_compile(input, output)
-  }
-
 
