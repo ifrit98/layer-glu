@@ -1,14 +1,14 @@
 library(tensorflow)
 library(keras)
 library(magrittr)
-source('layer-glu.R')
+# source('layer-glu.R')
 
 
 # Data Preparation --------------------------------------------------------
 
-batch_size <- 128
-num_classes <- 10
-epochs <- 40
+batch_size <- 128L
+num_classes <- 10L
+epochs <- 40L
 
 # The data, shuffled and split between train and test sets
 mnist <- dataset_mnist()
@@ -65,7 +65,8 @@ build_and_compile <-
 # framework/op_def_library.py:536 _apply_op_helper
 # repr(values), type(values).__name__, err))
 # 
-# TypeError: Expected int32 passed to parameter 'size' of op 'Slice', got [59904.0] of type 'list' instead. Error: Expected int32, got 59904.0 of type 'float' instead. 
+# TypeError: Expected int32 passed to parameter 'size' of op 'Slice', got 
+# [59904.0] of type 'list' instead. Error: Expected int32, got 59904.0 of type 'float' instead. 
 
 
 make_glu_model <- 
@@ -76,11 +77,12 @@ make_glu_model <-
       layer_input(shape = input_shape)
     
     glu <- input %>% 
-      layer_glu(32, 3) 
-      # %>% 
-      # layer_glu(64, 5) %>% 
-      # layer_glu(128, 8) %>% 
-      # layer_glu(192, 12) %>% 
+      layer_glu(32, 3) %>% 
+      layer_max_pooling_1d() %>% 
+      layer_glu(64, 5) %>%
+      layer_max_pooling_1d() %>% 
+      layer_glu(128, 8)
+      # layer_glu(192, 12) %>%
       # layer_glu(256, 16)
     
     output <- layer_global_max_pooling_1d(glu) %>% 
@@ -109,10 +111,17 @@ make_glu_block <-
   }
 
 
-(modelA <- make_glu_block())
-(modelB <- make_glu_model())
+# (model <- make_glu_block())
+# (model <- make_glu_model())
+(model <- gated_linear_unit())
 
-modelB$fit(
+model %>% compile(
+  optimizer = 'adagrad',
+  loss = 'categorical_crossentropy',
+  metrics = 'acc'
+)
+
+model$fit(
   x_train, y_train,
   epochs = epochs,
   batch_size = batch_size,

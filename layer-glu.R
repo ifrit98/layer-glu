@@ -1,5 +1,58 @@
 
+# Inheriting KerasModel
+gated_linear_unit <- 
+  function(
+    filters = 32,
+    kernel_size = 3,
+    kernel_initializer = 'glorot_normal',
+    kernel_regularizer = NULL,
+    bias_initializer = 'zeros',
+    bias_regularizer = NULL,
+    activation = 'relu',
+    name = NULL) {
+    
+    # browser()
+    filters            %<>% as.integer()
+    kernel_size        %<>% as.integer()
+    kernel_initializer %<>% tf$keras$initializers$get()
+    bias_initializer   %<>% tf$keras$initializers$get()
+    activation         %<>% tf$keras$activations$get()
+    
+    keras_model_custom(name = name, function(self) {
+      # browser()
+      
+      self$linear <- layer_conv_1d(
+        filters = filters,
+        kernel_size = kernel_size,
+        kernel_initializer = kernel_initializer,
+        activation = activation
+      )
+      
+      self$gated <- layer_conv_1d(
+        filters = filters,
+        kernel_size = kernel_size,
+        kernel_initializer = kernel_initializer,
+        activation = activation
+      )
+      
+      
+      # Call
+      function(x, mask = NULL) {
+        browser()
+        linear_out <- x %>% self$linear()
+        gated_out  <- x %>% self$gated()
+        
+        h <- layer_add(linear_out, 
+                       layer_activation(gated_out, activation = 'sigmoid'))
+        
+        h
+      }
+    })
+  }
 
+
+
+# As R6 Generator
 GatedLinearUnit <-
   R6::R6Class(
     "GatedLinearUnit",
@@ -34,8 +87,6 @@ GatedLinearUnit <-
       },
       
       build = function(input_shape) {
-        
-        browser()
         
         if (length(input_shape) == 1L)
           input_shape <- tf$TensorShape(input_shape[[1]])
@@ -80,8 +131,6 @@ GatedLinearUnit <-
       
       call = function(x, mask = NULL) {
         
-        browser()
-        
         linear_out <-
           tf$keras$backend$conv1d(x, self$linear_kernel, padding = 'same') %>%
           tf$keras$backend$bias_add(self$linear_bias)
@@ -90,11 +139,7 @@ GatedLinearUnit <-
           tf$keras$backend$conv1d(x, self$gated_kernel, padding = 'same') %>%
           tf$keras$backend$bias_add(self$gated_bias)
         
-        h <-
-          layer_multiply(list(
-            linear_out,
-            layer_activation(gated_out, activation = 'sigmoid')
-          ))
+        h <- tf$multiply(linear_out, tf$sigmoid(gated_out))
         
         h
       },
@@ -111,7 +156,7 @@ layer_glu <-
            filters = 32,
            kernel_size = 3,
            kernel_initializer = 'glorot_normal',
-           kernel_regularizer = 'l2',
+           kernel_regularizer = NULL,
            bias_initializer = 'zeros',
            bias_regularizer = NULL,
            name = NULL,
@@ -220,7 +265,7 @@ layer_glu_block <-
            filters = 32,
            kernel_size = 3,
            kernel_initializer = 'glorot_normal',
-           kernel_regularizer = 'l2',
+           kernel_regularizer = NULL,
            bias_initializer = 'zeros',
            bias_regularizer = NULL,
            name = NULL,
