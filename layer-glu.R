@@ -89,7 +89,7 @@ GatedLinearUnit <-
       build = function(input_shape) {
         
         if (length(input_shape) == 1L)
-          input_shape <- tf$TensorShape(input_shape[[1]])
+          input_shape <- tf$TensorShape(input_shape[[1L]])
         
         self$kernel_shape <-
           list(self$kernel_size,
@@ -145,7 +145,7 @@ GatedLinearUnit <-
       },
       
       compute_output_shape = function(input_shape) {
-        list(NULL, input_shape[[2]], self$filters)
+        list(NULL, input_shape[[2L]], self$filters)
       }
     )
   )
@@ -187,8 +187,8 @@ GLUBlock <-
     inherit = KerasLayer,
     
     public = list(
-      num_layers = NULL,
       filters = NULL,
+      num_layers = NULL,
       kernel_size = NULL,
       kernel_initializer = NULL,
       kernel_regularizer = NULL,
@@ -204,8 +204,8 @@ GLUBlock <-
                             bias_initializer,
                             bias_regularizer) {
         
-        self$num_layers <- num_layers
         self$filters <- filters
+        self$num_layers <- num_layers
         self$kernel_size <- kernel_size
         self$kernel_initializer <- kernel_initializer
         self$kernel_regularizer <- kernel_regularizer
@@ -236,14 +236,14 @@ GLUBlock <-
         for (layer in self$glu_layers) output <- layer(output)
         
         residual <-
-          layer_conv_1d(x, filters = self$filters, kernel_size = 1)
+          layer_conv_1d(x, filters = self$filters, kernel_size = 1L)
         
         layer_add(c(output, residual))
         
       },
       
       compute_output_shape = function(input_shape) {
-        list(NULL, input_shape[[2]], self$filters)
+        list(NULL, input_shape[[2L]], self$filters)
       },
       
       count_params = function() {
@@ -261,8 +261,8 @@ GLUBlock <-
 
 layer_glu_block <- 
   function(object,
+           filters,
            num_layers = 3,
-           filters = 32,
            kernel_size = 3,
            kernel_initializer = 'glorot_normal',
            kernel_regularizer = NULL,
@@ -275,8 +275,8 @@ layer_glu_block <-
       GLUBlock,
       object,
       list(
-        num_layers = as.integer(num_layers),
         filters = as.integer(filters),
+        num_layers = as.integer(num_layers),
         kernel_size = as.integer(kernel_size),
         kernel_initializer = tf$keras$initializers$get(kernel_initializer),
         kernel_regularizer = tf$keras$regularizers$get(kernel_regularizer),

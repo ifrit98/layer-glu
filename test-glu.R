@@ -40,7 +40,7 @@ build_and_compile <-
            optimizer = 'adam',
            loss      = "mse",
            metric    = 'acc') {
-    
+
     model <-keras_model(input, output) %>%
       compile(optimizer = optimizer,
               loss      = loss,
@@ -50,24 +50,6 @@ build_and_compile <-
 
 
 # Define Model -------------------------------------------------
-
-## CURRENT ERRORS
-# Error in py_call_impl(callable, dots$args, dots$keywords) : 
-#   TypeError: in converted code:
-#   relative to /home/home/.local/lib/python3.6/site-packages/tensorflow_core/python:
-#   
-#   keras/engine/data_adapter.py:307 slice_batch_indices
-# first_k_indices = array_ops.slice(indices, [0], [num_in_full_batch])
-# ops/array_ops.py:866 slice
-# return gen_array_ops._slice(input_, begin, size, name=name)
-# ops/gen_array_ops.py:9224 _slice
-# "Slice", input=input, begin=begin, size=size, name=name)
-# framework/op_def_library.py:536 _apply_op_helper
-# repr(values), type(values).__name__, err))
-# 
-# TypeError: Expected int32 passed to parameter 'size' of op 'Slice', got 
-# [59904.0] of type 'list' instead. Error: Expected int32, got 59904.0 of type 'float' instead. 
-
 
 make_glu_model <- 
   function(input_shape = list(784L, 1L), 
@@ -92,25 +74,6 @@ make_glu_model <-
   }
 
 
-
-make_glu_block <- 
-  function(input_shape = list(784L, 1L), 
-           output_classes = vector(length = num_classes)) {
-    
-    input <- 
-      layer_input(shape = input_shape) 
-    
-    base <- input %>% 
-      layer_glu_block()
-    
-    output <- base %>% 
-      layer_global_max_pooling_1d() %>% 
-      layer_dense(length(output_classes), activation = 'softmax')
-    
-    build_and_compile(input, output)
-  }
-
-
 # (model <- make_glu_block())
 # (model <- make_glu_model())
 (model <- gated_linear_unit())
@@ -120,6 +83,7 @@ model %>% compile(
   loss = 'categorical_crossentropy',
   metrics = 'acc'
 )
+
 
 model$fit(
   x_train, y_train,
